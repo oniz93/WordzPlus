@@ -27,6 +27,7 @@ struct GameView: View {
 
             HeaderView(
                 wordLength: wordLengthBinding,
+                userPoints: viewModel.userPoints,
                 onLengthChange: { _ in /* Handled by binding */ },
                 onHint: viewModel.getHint,
                 onSettings: { isShowingSettings = true },
@@ -105,12 +106,25 @@ struct GameView: View {
         .alert("You Win!", isPresented: $viewModel.showWinAlert) {
             Button("Play Again", role: .cancel) { viewModel.startNewGame() }
         } message: {
-            Text("Congratulations! You guessed the word '\(viewModel.targetWord)' in \(viewModel.guesses.count) tries.")
+            Text("Congratulations! You guessed the word '\(viewModel.targetWord)' in \(viewModel.guesses.count) tries and won \(viewModel.lastGamePoints) points.")
         }
         .alert("You Lose!", isPresented: $viewModel.showLoseAlert) {
             Button("Play Again", role: .cancel) { viewModel.startNewGame() }
         } message: {
             Text("The correct word was '\(viewModel.targetWord)'. Better luck next time!")
+        }
+        .alert("Not Enough Points", isPresented: $viewModel.showNotEnoughPointsAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("You need at least 40 points to use a hint.")
+        }
+        .alert("Use Hint?", isPresented: $viewModel.showHintConfirmationAlert) {
+            Button("Yes", role: .destructive) {
+                viewModel.confirmGetHint()
+            }
+            Button("No", role: .cancel) {}
+        } message: {
+            Text("Using a hint will cost 40 points. Are you sure?")
         }
     }
 }
@@ -119,6 +133,7 @@ struct GameView: View {
 
 struct HeaderView: View {
     @Binding var wordLength: Int
+    var userPoints: Int
     var onLengthChange: (Int) -> Void
     var onHint: () -> Void
     var onSettings: () -> Void
@@ -143,10 +158,19 @@ struct HeaderView: View {
                 
                 Spacer()
                 
-                Text("Wordz Plus")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundStyle(Color("brandForeground"))
+                VStack {
+                    Text("Wordz Plus")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color("brandForeground"))
+                    HStack {
+                        Image(systemName: "dollarsign.circle.fill")
+                            .foregroundColor(.yellow)
+                        Text("\(userPoints)")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                    }
+                }
                 
                 Spacer()
                 

@@ -15,6 +15,7 @@ class GameViewModel: ObservableObject {
     @Published var keyboardStatuses: [Character: LetterStatus] = [:]
     @Published var gameStatus: GameStatus = .playing
     @Published var isInvalidWord = false
+    @AppStorage("userPoints") var userPoints: Int = 0
 
     // MARK: - Alerts
     @Published var showWinAlert = false
@@ -23,6 +24,9 @@ class GameViewModel: ObservableObject {
     @Published var hintMessage = ""
     @Published var showLengthChangeConfirmAlert = false
     private var pendingWordLength: Int?
+    @Published var showNotEnoughPointsAlert = false
+    @Published var showHintConfirmationAlert = false
+    @Published var lastGamePoints = 0
     
     // --- NEW: Property for the reload confirmation alert ---
     @Published var xshowReloadConfirmAlert = false
@@ -126,9 +130,13 @@ class GameViewModel: ObservableObject {
 
         if currentGuess == targetWord {
             gameStatus = .won
+            let pointsWon = (7 - guesses.count) * 10
+            userPoints += pointsWon
+            lastGamePoints = pointsWon
             Analytics.logEvent("game_won", parameters: [
                 "word_length": wordLength,
-                "guesses": guesses.count
+                "guesses": guesses.count,
+                "points_won": pointsWon
             ])
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { self.showWinAlert = true }
         } else if guesses.count == maxAttempts {
@@ -146,6 +154,28 @@ class GameViewModel: ObservableObject {
     }
     
     func getHint() {
+        let allValidWords = WordList.shared.getValidWords(for: wordLength)
+        let guessedWords = Set(guesses.map { $0.word })
+
+        let possibleSolutions = allValidWords.filter { potentialWord in
+            return guesses.allSatisfy { guess in
+                let hypotheticalFeedback = getFeedback(for: guess.word, with: potentialWord)
+                return hypotheticalFeedback == guess.feedback
+            }
+        }
+
+        if possibleSolutions.count == 1 && possibleSolutions.first == targetWord {
+            self.hintMessage = "I don't want to spoil the solution 😁"
+            self.showHintAlert = true
+        } else if userPoints >= 40 {
+            showHintConfirmationAlert = true
+        } else {
+            showNotEnoughPointsAlert = true
+        }
+    }
+
+    func confirmGetHint() {
+        userPoints -= 40
         Analytics.logEvent("hint_used", parameters: ["word_length": wordLength])
         let allValidWords = WordList.shared.getValidWords(for: wordLength)
         let guessedWords = Set(guesses.map { $0.word })
