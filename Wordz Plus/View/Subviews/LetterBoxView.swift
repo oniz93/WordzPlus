@@ -32,6 +32,7 @@ struct LetterBoxView: View {
             }
         }
         .aspectRatio(1, contentMode: .fit)
+        .padding(.vertical, -3)
         .opacity(opacity)
         // The onAppear logic is now safe because the view is visible from the start
         // if it's not a 'revealing' box.

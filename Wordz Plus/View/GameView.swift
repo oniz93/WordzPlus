@@ -6,7 +6,6 @@ struct GameView: View {
     @State private var isShowingHowToPlay = false
     @AppStorage("isFirstLaunch") private var isFirstLaunch: Bool = true
     @AppStorage("colorScheme") private var colorScheme: ColorSchemeChoice = .system
-    @AppStorage("gameMode") private var gameMode: GameMode = GameMode.normal
 
     private var selectedScheme: ColorScheme? {
         switch colorScheme {
@@ -21,7 +20,7 @@ struct GameView: View {
 
     var body: some View {
         let hintCost = {
-            gameMode == .beginner ? "20" : "40"
+            viewModel.gameMode == .beginner ? "20" : "40"
         }
         VStack(spacing: 0) {
             let wordLengthBinding = Binding<Int>(
@@ -72,8 +71,12 @@ struct GameView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color("brandBackground"))
         .sheet(isPresented: $isShowingSettings) {
-            SettingsView(colorScheme: $colorScheme, gameMode: $gameMode)
-                .preferredColorScheme(selectedScheme)
+            SettingsView(
+                colorScheme: $colorScheme,
+                gameMode: $viewModel.gameMode,
+                onGameModeChange: viewModel.changeGameMode
+            )
+            .preferredColorScheme(selectedScheme)
         }
         .sheet(isPresented: $isShowingHowToPlay) {
             HowToPlayView()
@@ -97,14 +100,6 @@ struct GameView: View {
             }
         } message: {
             Text("Are you sure you want to start a new game? Your current progress will be lost.")
-        }
-        .alert("Change Word Length", isPresented: $viewModel.showLengthChangeConfirmAlert) {
-            Button("OK", role: .destructive) {
-                viewModel.confirmChangeWordLength()
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("Changing the word length will start a new game. Your current progress will be lost.")
         }
         .alert("Hint", isPresented: $viewModel.showHintAlert) {
             Button("OK", role: .cancel) {}
@@ -204,8 +199,8 @@ struct HeaderView: View {
             }
             .pickerStyle(.segmented)
             .padding(.horizontal)
-            .onChange(of: wordLength) {
-                onLengthChange($0)
+            .onChange(of: wordLength) { newValue in
+                onLengthChange(newValue)
             }
         }
         .padding(.vertical)

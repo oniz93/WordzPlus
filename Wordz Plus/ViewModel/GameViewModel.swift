@@ -31,15 +31,13 @@ class GameViewModel: ObservableObject {
     @Published var gameStatus: GameStatus = .playing
     @Published var isInvalidWord = false
     @AppStorage("userPoints") var userPoints: Int = 0
-    @AppStorage("gameMode") private var gameMode: GameMode = .normal
+    @Published var gameMode: GameMode = .normal
 
     // MARK: - Alerts
     @Published var showWinAlert = false
     @Published var showLoseAlert = false
     @Published var showHintAlert = false
     @Published var hintMessage = ""
-    @Published var showLengthChangeConfirmAlert = false
-    private var pendingWordLength: Int?
     @Published var showNotEnoughPointsAlert = false
     @Published var showHintConfirmationAlert = false
     @Published var lastGamePoints = 0
@@ -47,19 +45,25 @@ class GameViewModel: ObservableObject {
     // --- NEW: Property for the reload confirmation alert ---
     @Published var xshowReloadConfirmAlert = false
 
-    private let gameStateKey = "gameState"
+    private var gameStateKey: String {
+        "gameState_\(wordLength)_\(gameMode.rawValue)"
+    }
     private let recentWordsKey = "recentWords"
     private var recentWords: [String: [String]] = [:]
+    private let gameModeKey = "gameMode"
 
     init() {
-        loadRecentWords()
-        if !loadState() {
-            startNewGame()
+        if let savedMode = UserDefaults.standard.string(forKey: gameModeKey),
+           let mode = GameMode(rawValue: savedMode) {
+            self.gameMode = mode
         }
+        loadRecentWords()
+        loadGame()
     }
 
     // MARK: - Game State Persistence
-    private func saveState() {
+    private func saveState(for wordLength: Int, and gameMode: GameMode) {
+        guard !guesses.isEmpty || !currentGuess.isEmpty else { return }
         let savableKeyboardStatuses = Dictionary(uniqueKeysWithValues: keyboardStatuses.map { key, value in (String(key), value) })
         
         let gameState = GameState(
@@ -70,8 +74,9 @@ class GameViewModel: ObservableObject {
             wordLength: wordLength,
             currentGuess: currentGuess
         )
+        let key = "gameState_\(wordLength)_\(gameMode.rawValue)"
         if let encoded = try? JSONEncoder().encode(gameState) {
-            UserDefaults.standard.set(encoded, forKey: gameStateKey)
+            UserDefaults.standard.set(encoded, forKey: key)
         }
     }
 
@@ -104,6 +109,35 @@ class GameViewModel: ObservableObject {
     private func loadRecentWords() {
         if let loadedWords = UserDefaults.standard.dictionary(forKey: recentWordsKey) as? [String: [String]] {
             recentWords = loadedWords
+        }
+    }
+    
+    func loadGame() {
+        if !loadState() {
+            startNewGame()
+        }
+    }
+
+    // MARK: - Game Mode Switching
+    func changeGameMode(to newGameMode: GameMode) {
+        let oldGameMode = gameMode
+        let oldWordLength = wordLength
+        
+        if oldGameMode != newGameMode {
+            saveState(for: oldWordLength, and: oldGameMode)
+            gameMode = newGameMode
+            UserDefaults.standard.set(newGameMode.rawValue, forKey: gameModeKey)
+            loadGame()
+        }
+    }
+
+    func changeWordLength(to newLength: Int) {
+        let oldWordLength = wordLength
+        
+        if oldWordLength != newLength {
+            saveState(for: oldWordLength, and: gameMode)
+            wordLength = newLength
+            loadGame()
         }
     }
 
@@ -161,40 +195,11 @@ class GameViewModel: ObservableObject {
         self.xshowReloadConfirmAlert = true
     }
 
-    func changeWordLength(to newLength: Int) {
-        guard [4, 5, 6].contains(newLength) else { return }
-        if wordLength == newLength { return }
-
-        if !guesses.isEmpty {
-            pendingWordLength = newLength
-            showLengthChangeConfirmAlert = true
-        } else {
-            wordLength = newLength
-            startNewGame()
-        }
-    }
-
-    func confirmChangeWordLength() {
-        if let newLength = pendingWordLength {
-            // Log abandoned game if a game was in progress
-            if gameStatus == .playing && !guesses.isEmpty {
-                Analytics.logEvent("game_abandoned", parameters: [
-                    "word_length": wordLength,
-                    "guesses_made": guesses.count
-                ])
-            }
-            
-            wordLength = newLength
-            startNewGame()
-            pendingWordLength = nil
-        }
-    }
-
     // MARK: - User Input Handling
     func keyPress(_ letter: Character) {
         guard gameStatus == .playing && currentGuess.count < wordLength else { return }
         currentGuess.append(letter)
-        saveState()
+        saveState(for: wordLength, and: gameMode)
     }
 
     func deletePress() {
@@ -203,7 +208,7 @@ class GameViewModel: ObservableObject {
         if isInvalidWord {
            isInvalidWord = false
         }
-        saveState()
+        saveState(for: wordLength, and: gameMode)
     }
 
     func submitGuess() {
@@ -240,7 +245,7 @@ class GameViewModel: ObservableObject {
         }
         
         currentGuess = ""
-        saveState()
+        saveState(for: wordLength, and: gameMode)
     }
 
     private func triggerInvalidWord() {

@@ -25,7 +25,7 @@ struct GameBoardView: View {
                 }
             }
         }
-        .padding(.vertical, 10)
+        .padding(.vertical, 8)
         .padding(.horizontal, 5)
         .frame(maxWidth: CGFloat(wordLength) * 70) // Adjust max width based on word length
     }

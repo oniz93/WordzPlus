@@ -13,6 +13,7 @@ struct SettingsView: View {
     // This property reads/writes the user's choice to UserDefaults
     @Binding var colorScheme: ColorSchemeChoice
     @Binding var gameMode: GameMode
+    var onGameModeChange: (GameMode) -> Void
     
     // Environment value to dismiss the sheet
     @Environment(\.dismiss) private var dismiss
@@ -28,6 +29,9 @@ struct SettingsView: View {
                     }
                     .pickerStyle(.segmented)
                     .padding(.vertical, 5)
+                    .onChange(of: gameMode) { newValue in
+                        onGameModeChange(newValue)
+                    }
                 }
 
                 Section(header: Text("Appearance")) {
@@ -59,5 +63,5 @@ struct SettingsView: View {
 }
 
 #Preview {
-    SettingsView(colorScheme: .constant(.system), gameMode: .constant(.normal))
+    SettingsView(colorScheme: .constant(.system), gameMode: .constant(.normal), onGameModeChange: { _ in })
 }
