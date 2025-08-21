@@ -83,7 +83,7 @@ struct KeyButton: View {
                     Image(systemName: "delete.left")
                 }
             }
-            .font(.system(size: key.isSpecial ? 14 : 18, weight: .semibold))
+            .font(.custom("JetBrainsMono-SemiBold", size: key.isSpecial ? 14 : 22))
             .frame(maxWidth: .infinity) // Makes keys resize to fill space
             .frame(height: 50)
             .if(key.isSpecial) { view in // Use .if for conditional width
@@ -91,7 +91,7 @@ struct KeyButton: View {
             }
             .background(backgroundColor)
             .foregroundColor(foregroundColor)
-            .cornerRadius(8)
+            .cornerRadius(16)
         }
         .buttonStyle(.plain) // Removes default button styling
         .disabled(key == .enter && isEnterDisabled)

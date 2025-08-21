@@ -2,10 +2,25 @@ import Foundation
 import SwiftUI
 import FirebaseAnalytics
 
+// MARK: - Game State Persistence
+struct GameState: Codable {
+    var targetWord: String
+    var guesses: [Guess]
+    var keyboardStatuses: [String: LetterStatus] // Changed to String key
+    var gameStatus: GameStatus
+    var wordLength: Int
+    var currentGuess: String
+}
+
 @MainActor
 class GameViewModel: ObservableObject {
     // MARK: - Game Settings
-    let maxAttempts = 6
+    var maxAttempts: Int {
+        gameMode == .beginner ? 8 : 6
+    }
+    var hintPoints: Int {
+        gameMode == .beginner ? 20 : 40
+    }
     @Published var wordLength = 5
 
     // MARK: - Published Game State
@@ -16,6 +31,7 @@ class GameViewModel: ObservableObject {
     @Published var gameStatus: GameStatus = .playing
     @Published var isInvalidWord = false
     @AppStorage("userPoints") var userPoints: Int = 0
+    @AppStorage("gameMode") private var gameMode: GameMode = .normal
 
     // MARK: - Alerts
     @Published var showWinAlert = false
@@ -31,8 +47,64 @@ class GameViewModel: ObservableObject {
     // --- NEW: Property for the reload confirmation alert ---
     @Published var xshowReloadConfirmAlert = false
 
+    private let gameStateKey = "gameState"
+    private let recentWordsKey = "recentWords"
+    private var recentWords: [String: [String]] = [:]
+
     init() {
-        startNewGame()
+        loadRecentWords()
+        if !loadState() {
+            startNewGame()
+        }
+    }
+
+    // MARK: - Game State Persistence
+    private func saveState() {
+        let savableKeyboardStatuses = Dictionary(uniqueKeysWithValues: keyboardStatuses.map { key, value in (String(key), value) })
+        
+        let gameState = GameState(
+            targetWord: targetWord,
+            guesses: guesses,
+            keyboardStatuses: savableKeyboardStatuses,
+            gameStatus: gameStatus,
+            wordLength: wordLength,
+            currentGuess: currentGuess
+        )
+        if let encoded = try? JSONEncoder().encode(gameState) {
+            UserDefaults.standard.set(encoded, forKey: gameStateKey)
+        }
+    }
+
+    private func loadState() -> Bool {
+        guard let savedData = UserDefaults.standard.data(forKey: gameStateKey),
+              let gameState = try? JSONDecoder().decode(GameState.self, from: savedData) else {
+            return false
+        }
+
+        self.targetWord = gameState.targetWord
+        self.guesses = gameState.guesses
+        self.gameStatus = gameState.gameStatus
+        self.wordLength = gameState.wordLength
+        self.currentGuess = gameState.currentGuess
+        
+        // Convert keyboard status keys back to Character
+        self.keyboardStatuses = Dictionary(uniqueKeysWithValues: gameState.keyboardStatuses.map { key, value in (Character(key), value) })
+
+        return true
+    }
+
+    private func clearState() {
+        UserDefaults.standard.removeObject(forKey: gameStateKey)
+    }
+
+    private func saveRecentWords() {
+        UserDefaults.standard.set(recentWords, forKey: recentWordsKey)
+    }
+
+    private func loadRecentWords() {
+        if let loadedWords = UserDefaults.standard.dictionary(forKey: recentWordsKey) as? [String: [String]] {
+            recentWords = loadedWords
+        }
     }
 
     // MARK: - Game Flow
@@ -45,7 +117,23 @@ class GameViewModel: ObservableObject {
             ])
         }
 
-        self.targetWord = WordList.shared.getRandomWord(for: wordLength).uppercased()
+        var newWord = ""
+        repeat {
+            newWord = WordList.shared.getRandomWord(for: wordLength).uppercased()
+        } while (recentWords[String(wordLength)] ?? []).contains(newWord)
+
+        self.targetWord = newWord
+        
+        let key = String(wordLength)
+        if recentWords[key] == nil {
+            recentWords[key] = []
+        }
+        recentWords[key]?.append(newWord)
+        if (recentWords[key]?.count ?? 0) > 10 {
+            recentWords[key]?.removeFirst()
+        }
+        saveRecentWords()
+
         self.guesses = []
         self.currentGuess = ""
         self.gameStatus = .playing
@@ -55,6 +143,7 @@ class GameViewModel: ObservableObject {
         self.showHintAlert = false
         self.hintMessage = ""
         resetKeyboard()
+        clearState()
         print("New game started. Target word: \(targetWord)")
         
         // Log new game event
@@ -105,6 +194,7 @@ class GameViewModel: ObservableObject {
     func keyPress(_ letter: Character) {
         guard gameStatus == .playing && currentGuess.count < wordLength else { return }
         currentGuess.append(letter)
+        saveState()
     }
 
     func deletePress() {
@@ -113,6 +203,7 @@ class GameViewModel: ObservableObject {
         if isInvalidWord {
            isInvalidWord = false
         }
+        saveState()
     }
 
     func submitGuess() {
@@ -130,7 +221,8 @@ class GameViewModel: ObservableObject {
 
         if currentGuess == targetWord {
             gameStatus = .won
-            let pointsWon = (7 - guesses.count) * 10
+            let basePoints = gameMode == .beginner ? 90 : 70
+            let pointsWon = basePoints - (guesses.count - 1) * 10
             userPoints += pointsWon
             lastGamePoints = pointsWon
             Analytics.logEvent("game_won", parameters: [
@@ -138,14 +230,17 @@ class GameViewModel: ObservableObject {
                 "guesses": guesses.count,
                 "points_won": pointsWon
             ])
+            clearState()
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { self.showWinAlert = true }
         } else if guesses.count == maxAttempts {
             gameStatus = .lost
             Analytics.logEvent("game_lost", parameters: ["word_length": wordLength])
+            clearState()
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { self.showLoseAlert = true }
         }
         
         currentGuess = ""
+        saveState()
     }
 
     private func triggerInvalidWord() {
@@ -167,7 +262,7 @@ class GameViewModel: ObservableObject {
         if possibleSolutions.count == 1 && possibleSolutions.first == targetWord {
             self.hintMessage = "I don't want to spoil the solution 😁"
             self.showHintAlert = true
-        } else if userPoints >= 40 {
+        } else if userPoints >= hintPoints {
             showHintConfirmationAlert = true
         } else {
             showNotEnoughPointsAlert = true
@@ -175,7 +270,7 @@ class GameViewModel: ObservableObject {
     }
 
     func confirmGetHint() {
-        userPoints -= 40
+        userPoints -= hintPoints
         Analytics.logEvent("hint_used", parameters: ["word_length": wordLength])
         let allValidWords = WordList.shared.getValidWords(for: wordLength)
         let guessedWords = Set(guesses.map { $0.word })

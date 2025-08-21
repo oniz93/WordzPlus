@@ -5,6 +5,7 @@ import FirebaseCore
 struct WordzPlusApp: App {
     // Read the saved theme choice from UserDefaults
     @AppStorage("colorScheme") private var colorScheme: ColorSchemeChoice = .system
+    @AppStorage("gameMode") private var gameMode: GameMode = .normal
 
     init() {
         FirebaseApp.configure()

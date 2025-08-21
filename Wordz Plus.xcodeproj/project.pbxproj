@@ -19,6 +19,9 @@
 		C945B3E82E092E66003EE955 /* Wordz_PlusUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C945B3E72E092E66003EE955 /* Wordz_PlusUITests.swift */; };
 		C945B3EA2E092E66003EE955 /* Wordz_PlusUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C945B3E92E092E66003EE955 /* Wordz_PlusUITestsLaunchTests.swift */; };
 		C945B3F72E09307A003EE955 /* words.json in Resources */ = {isa = PBXBuildFile; fileRef = C945B3F62E09307A003EE955 /* words.json */; };
+		C9895D052E56AD020079FE2A /* CutiveMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C9895D042E56AD020079FE2A /* CutiveMono-Regular.ttf */; };
+		C9895D082E56AEAB0079FE2A /* JetBrainsMono-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C9895D072E56AEAB0079FE2A /* JetBrainsMono-SemiBold.ttf */; };
+		C9895D092E56AEAB0079FE2A /* JetBrainsMono-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C9895D062E56AEAB0079FE2A /* JetBrainsMono-Bold.ttf */; };
 		C98B67E62E464CA000B3DF08 /* FirebaseAnalytics.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = C98B67D22E464A6C00B3DF08 /* FirebaseAnalytics.xcframework */; };
 		C98B67E72E464CA000B3DF08 /* FirebaseAnalytics.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C98B67D22E464A6C00B3DF08 /* FirebaseAnalytics.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		C98B67E92E464CA200B3DF08 /* FirebaseCore.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = C98B67D32E464A6C00B3DF08 /* FirebaseCore.xcframework */; };
@@ -98,6 +101,9 @@
 		C945B3E72E092E66003EE955 /* Wordz_PlusUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Wordz_PlusUITests.swift; sourceTree = "<group>"; };
 		C945B3E92E092E66003EE955 /* Wordz_PlusUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Wordz_PlusUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		C945B3F62E09307A003EE955 /* words.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = words.json; sourceTree = "<group>"; };
+		C9895D042E56AD020079FE2A /* CutiveMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CutiveMono-Regular.ttf"; sourceTree = "<group>"; };
+		C9895D062E56AEAB0079FE2A /* JetBrainsMono-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Bold.ttf"; sourceTree = "<group>"; };
+		C9895D072E56AEAB0079FE2A /* JetBrainsMono-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-SemiBold.ttf"; sourceTree = "<group>"; };
 		C98B67D12E464A6C00B3DF08 /* FBLPromises.xcframework */ = {isa = PBXFileReference; expectedSignature = "AppleDeveloperProgram:EQHXZ8M8AV:Google LLC"; lastKnownFileType = wrapper.xcframework; path = FBLPromises.xcframework; sourceTree = "<group>"; };
 		C98B67D22E464A6C00B3DF08 /* FirebaseAnalytics.xcframework */ = {isa = PBXFileReference; expectedSignature = "AppleDeveloperProgram:EQHXZ8M8AV:Google LLC"; lastKnownFileType = wrapper.xcframework; path = FirebaseAnalytics.xcframework; sourceTree = "<group>"; };
 		C98B67D32E464A6C00B3DF08 /* FirebaseCore.xcframework */ = {isa = PBXFileReference; expectedSignature = "AppleDeveloperProgram:EQHXZ8M8AV:Google LLC"; lastKnownFileType = wrapper.xcframework; path = FirebaseCore.xcframework; sourceTree = "<group>"; };
@@ -195,6 +201,8 @@
 		C945B3CB2E092E61003EE955 /* Wordz Plus */ = {
 			isa = PBXGroup;
 			children = (
+				C9895D062E56AEAB0079FE2A /* JetBrainsMono-Bold.ttf */,
+				C9895D072E56AEAB0079FE2A /* JetBrainsMono-SemiBold.ttf */,
 				C90121312E43B51F00EF9D46 /* dictionary.json */,
 				C92345222E0A50EC004319DE /* Wordz-Plus-Info.plist */,
 				C92BF6502E0A3D6D00164A63 /* SettingsView.swift */,
@@ -208,6 +216,7 @@
 				C945B3F62E09307A003EE955 /* words.json */,
 				C90121352E4645D100EF9D46 /* GoogleService-Info.plist */,
 				C98B67E52E464B9400B3DF08 /* Firebase.h */,
+				C9895D042E56AD020079FE2A /* CutiveMono-Regular.ttf */,
 			);
 			path = "Wordz Plus";
 			sourceTree = "<group>";
@@ -352,9 +361,12 @@
 			files = (
 				C945B3F72E09307A003EE955 /* words.json in Resources */,
 				C90121322E43B51F00EF9D46 /* dictionary.json in Resources */,
+				C9895D052E56AD020079FE2A /* CutiveMono-Regular.ttf in Resources */,
 				C90121362E4645D100EF9D46 /* GoogleService-Info.plist in Resources */,
 				C945B3D42E092E65003EE955 /* Preview Assets.xcassets in Resources */,
 				C945B3D12E092E65003EE955 /* Assets.xcassets in Resources */,
+				C9895D082E56AEAB0079FE2A /* JetBrainsMono-SemiBold.ttf in Resources */,
+				C9895D092E56AEAB0079FE2A /* JetBrainsMono-Bold.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -203,5 +203,11 @@
 			<string>3qcr597p9d.skadnetwork</string>
 		</dict>
 	</array>
+	<key>UIAppFonts</key>
+	<array>
+		<string>JetBrainsMono-Bold.ttf</string>
+		<string>JetBrainsMono-SemiBold.ttf</string>
+		<string>CutiveMono-Regular.ttf</string>
+	</array>
 </dict>
 </plist>

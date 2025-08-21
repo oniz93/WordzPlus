@@ -5,8 +5,7 @@ struct GameBoardView: View {
     let currentGuess: String
     let wordLength: Int
     let isInvalidWord: Bool
-    
-    private let maxAttempts = 6
+    let maxAttempts: Int
 
     var body: some View {
         VStack(spacing: 10) {
@@ -26,6 +25,8 @@ struct GameBoardView: View {
                 }
             }
         }
+        .padding(.vertical, 10)
+        .padding(.horizontal, 5)
         .frame(maxWidth: CGFloat(wordLength) * 70) // Adjust max width based on word length
     }
 }
@@ -81,7 +82,7 @@ struct LetterRowView: View {
                     letter: data.letter,
                     status: data.status,
                     isRevealing: self.isRevealing && self.guess != nil, // Reveal only for submitted guesses
-                    animationDelay: Double(data.id) * 0.2
+                    animationDelay: Double(data.id) * 0.1
                 )
             }
         }

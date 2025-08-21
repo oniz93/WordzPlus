@@ -6,6 +6,7 @@ struct GameView: View {
     @State private var isShowingHowToPlay = false
     @AppStorage("isFirstLaunch") private var isFirstLaunch: Bool = true
     @AppStorage("colorScheme") private var colorScheme: ColorSchemeChoice = .system
+    @AppStorage("gameMode") private var gameMode: GameMode = GameMode.normal
 
     private var selectedScheme: ColorScheme? {
         switch colorScheme {
@@ -19,11 +20,15 @@ struct GameView: View {
     }
 
     var body: some View {
+        let hintCost = {
+            gameMode == .beginner ? "20" : "40"
+        }
         VStack(spacing: 0) {
             let wordLengthBinding = Binding<Int>(
                 get: { viewModel.wordLength },
                 set: { viewModel.changeWordLength(to: $0) }
             )
+            
 
             HeaderView(
                 wordLength: wordLengthBinding,
@@ -37,12 +42,15 @@ struct GameView: View {
 
             Spacer()
 
-            GameBoardView(
-                guesses: viewModel.guesses,
-                currentGuess: viewModel.currentGuess,
-                wordLength: viewModel.wordLength,
-                isInvalidWord: viewModel.isInvalidWord
-            )
+            ScrollView {
+                GameBoardView(
+                    guesses: viewModel.guesses,
+                    currentGuess: viewModel.currentGuess,
+                    wordLength: viewModel.wordLength,
+                    isInvalidWord: viewModel.isInvalidWord,
+                    maxAttempts: viewModel.maxAttempts
+                )
+            }
             .padding(.horizontal)
 
             Spacer()
@@ -64,7 +72,7 @@ struct GameView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color("brandBackground"))
         .sheet(isPresented: $isShowingSettings) {
-            SettingsView(colorScheme: $colorScheme)
+            SettingsView(colorScheme: $colorScheme, gameMode: $gameMode)
                 .preferredColorScheme(selectedScheme)
         }
         .sheet(isPresented: $isShowingHowToPlay) {
@@ -116,7 +124,7 @@ struct GameView: View {
         .alert("Not Enough Points", isPresented: $viewModel.showNotEnoughPointsAlert) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("You need at least 40 points to use a hint.")
+            Text("You need at least \(hintCost()) points to use a hint.")
         }
         .alert("Use Hint?", isPresented: $viewModel.showHintConfirmationAlert) {
             Button("Yes", role: .destructive) {
@@ -124,7 +132,7 @@ struct GameView: View {
             }
             Button("No", role: .cancel) {}
         } message: {
-            Text("Using a hint will cost 40 points. Are you sure?")
+            Text("Using a hint will cost \(hintCost()) points. Are you sure?")
         }
     }
 }

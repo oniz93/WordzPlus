@@ -10,10 +10,16 @@ enum LetterStatus: String, Codable, Equatable {
 }
 
 // Represents a single submitted guess
-struct Guess: Identifiable, Equatable {
-    let id = UUID()
+struct Guess: Identifiable, Codable, Equatable {
+    let id: String
     let word: String
     let feedback: [LetterStatus]
+
+    init(word: String, feedback: [LetterStatus]) {
+        self.id = UUID().uuidString
+        self.word = word
+        self.feedback = feedback
+    }
 
     var letters: [String] {
         word.map { String($0) }
@@ -21,6 +27,6 @@ struct Guess: Identifiable, Equatable {
 }
 
 // Represents the current state of the game
-enum GameStatus {
+enum GameStatus: String, Codable {
     case playing, won, lost
 }
