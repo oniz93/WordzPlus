@@ -92,14 +92,20 @@ struct GameView: View {
         // --- NEW: Alert modifier for the reload confirmation ---
         .alert("New Game", isPresented: $viewModel.xshowReloadConfirmAlert) {
             Button("OK", role: .destructive) {
-                // If OK is tapped, call the function to start a new game
-                viewModel.startNewGame()
+                // If OK is tapped, start a new game and reveal the previous word
+                viewModel.startNewGame(revealPreviousWord: true)
             }
             Button("Cancel", role: .cancel) {
                 // The cancel role automatically handles dismissal
             }
         } message: {
             Text("Are you sure you want to start a new game? Your current progress will be lost.")
+        }
+        // --- NEW: Popup revealing the previous word after a reset ---
+        .alert("Previous Word", isPresented: $viewModel.showPreviousWordAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("The word you were trying to guess was '\(viewModel.previousTargetWord)'.")
         }
         .alert("Hint", isPresented: $viewModel.showHintAlert) {
             Button("OK", role: .cancel) {}
