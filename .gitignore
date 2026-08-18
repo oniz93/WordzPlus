@@ -1,0 +1,11 @@
+# Firebase configuration — contains API keys, keep it local only
+GoogleService-Info.plist
+
+# macOS
+.DS_Store
+
+# Xcode user/build artifacts
+DerivedData/
+build/
+xcuserdata/
+*.xcuserstate
