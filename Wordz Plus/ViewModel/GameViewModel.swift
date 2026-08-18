@@ -45,6 +45,10 @@ class GameViewModel: ObservableObject {
     // --- NEW: Property for the reload confirmation alert ---
     @Published var xshowReloadConfirmAlert = false
 
+    // --- NEW: Properties for the previous-word popup after a reset ---
+    @Published var showPreviousWordAlert = false
+    @Published var previousTargetWord = ""
+
     private var gameStateKey: String {
         "gameState_\(wordLength)_\(gameMode.rawValue)"
     }
@@ -142,7 +146,7 @@ class GameViewModel: ObservableObject {
     }
 
     // MARK: - Game Flow
-    func startNewGame() {
+    func startNewGame(revealPreviousWord: Bool = false) {
         // Log abandoned game if a game was in progress
         if gameStatus == .playing && !guesses.isEmpty {
             Analytics.logEvent("game_abandoned", parameters: [
@@ -150,6 +154,9 @@ class GameViewModel: ObservableObject {
                 "guesses_made": guesses.count
             ])
         }
+
+        // Capture the word the player was trying to guess before the reset
+        let previousWord = targetWord
 
         var newWord = ""
         repeat {
@@ -173,12 +180,21 @@ class GameViewModel: ObservableObject {
         self.gameStatus = .playing
         self.showWinAlert = false
         self.showLoseAlert = false
+        self.showPreviousWordAlert = false
         self.isInvalidWord = false
         self.showHintAlert = false
         self.hintMessage = ""
         resetKeyboard()
         clearState()
         print("New game started. Target word: \(targetWord)")
+        
+        // --- NEW: Popup revealing the previous word after a confirmed reset ---
+        if revealPreviousWord && !previousWord.isEmpty {
+            previousTargetWord = previousWord
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.showPreviousWordAlert = true
+            }
+        }
         
         // Log new game event
         Analytics.logEvent("game_started", parameters: ["word_length": wordLength])
